@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<script src="/jquery.js"></script>
+<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css"/>
+<link rel="stylesheet" type="text/css" href="/bootstrap-dialog/dist/css/bootstrap-dialog.css"/>
+<script type="text/javascript" src="/bootstrap-dialog/dist/js/bootstrap-dialog.js"></script>
+<script type="text/javascript" src="/bootstrap-table/dist/bootstrap-table.js"></script>
+<link rel="stylesheet" type="text/css" href="/bootstrap-table/dist/bootstrap-table.css"/>
+<script type="text/javascript" src="/bootstrap-table/dist/locale/bootstrap-table-zh-CN.js"></script>
+
+
+<body>
+<button type="button" class="btn btn-default" title="新建" onclick="insert()"><i class="fa fa-file-o"></i> 新建</button>
+<button type="button" class="btn btn-default" title="删除" onclick="deleteBatch()" ><i class="fa fa-trash-o"></i> 删除</button>
+<button type="button" class="btn btn-default" title="刷新" onclick="window.location.reload();"><i class="fa fa-refresh"></i> 刷新</button>
+<!--    <div th:replace="/common/common :: foot"></div>-->
+<div id="table" ></div>
+<!--<div id="table"  >-->
+<!--</div>-->
+<script th:inline="javascript">
+    $(function (){
+        $.ajax({
+            url: '/carController/getCar',
+            type: "post",
+            dataType: "json",
+            data: {
+            },
+            success: function (obj) {
+                var result = obj.data;
+                console.log(result)
+                var concats = "";
+                if (obj.code == 200) {
+                    concats += "<table width='100%' border='1px'>";
+                    concats += "<tr>";
+                    concats += "<td>按钮</td>";
+                    concats += "<td>ID</td>";
+                    concats += "<td>汽车名称</td>";
+                    concats += "<td>汽车详情</td>";
+                    concats += "<td>操作</td>";
+                    concats += "</tr>";
+                    for (var i = 0; i < result.length; i++) {
+                        concats += "<tr>";
+                        concats +='<td><input width="10px"  type="checkbox" name="id" value="'+result[i].id+'"></td>';
+                        concats += "<td>" + result[i].id + "</td>";
+                        concats += "<td>" + result[i].name + "</td>";
+                        concats += "<td>" + result[i].address + "</td>";
+                        concats += "</td>";
+                        concats += "<td>"
+                        concats += "<button class='btn bg-olive btn-xs' data-toggle='modal' data-target='#sellerModal'  onclick=\'tbSeller(&quot;"+result[i].id+"&quot;)\'  >详情</button>";
+                        concats += "</td>";
+                        concats+=  "</td>";
+                        concats += "</tr>";
+                    }
+                }
+                concats += "</table>";
+                $("#table").html(concats);
+            },
+            error: function () {
+                alert("失败");
+            }
+        })
+    })
+    function getData(){//刷新
+        $("#table").bootstrapTable("refresh")
+    }
+    /*删除*/
+    function deleteBatch(){
+        var cids = [];
+        var rows = $("#table").bootstrapTable("getSelections");
+        // console.log(rows)
+        $(rows).each(function (i,e){
+            cids.push(e.cid);
+        })
+        if(cids.length<=0){
+            toastr.error("请选择需要删除的行");
+            return;
+        }
+        console.log(cids)
+        $.ajax({
+            url:"/user/deletes",
+            dataType:"json",
+            type:"post",
+            data:{id:id},
+            async:true,
+            success:function (result){
+                if (result==1) {
+                    alert("成功");
+                    getData();
+                }
+            },
+            error:function (result){
+                alert("网络错误");
+            }
+        })
+    }
+    /*增加操作*/
+    function insert(){
+        BootstrapDialog.show({
+            title: '增加',
+            /*弹出框里面的内容*/
+            message: $("<div></div>").load("/user/toAdd"),
+            closeable: true,
+            /*设置弹出框的颜色和大小*/
+            type: BootstrapDialog.TYPE_SUCCESS,
+            size: BootstrapDialog.SIZE_WIDE,
+            buttons: [{
+                label: '确认',
+                action: function (dialog) {
+                    $.ajax({
+                        url:"/user/addUser",
+                        dataType:"json",
+                        type : "post",
+                        data:$("#id_toAdd").serialize(),
+                        success:function (result){
+                            if (result==1) {
+                                alert("增加成功");
+                                getData();
+
+                            }
+                        },
+                        error: function (){
+                        }
+                    })
+                    dialog.close();
+                }
+            }, {
+                label: '取消',
+                action: function (dialog) {
+                    dialog.close();
+                }
+            }]
+        });
+    }
+    function  EditViewById(id) {
+        BootstrapDialog.show({
+            title: '提示',
+            message: $('<div></div>').load('/user/getUpdate?id='+id),
+            buttons: [{
+                label: '修改',
+                cssClass: "btn-success",
+                action: function (dialog) {
+                    $.ajax({
+                        url: "/user/getupdates", //路径
+                        type: "post",    //默认get请求 可改成post
+                        dateType: "json",
+                        data: $("#id_update").serialize(),
+                        success: function (data) {
+                            getData();
+                        },
+                        error: function () {
+                            toastr.error("系统错误,请联系管理员");
+                        }
+                    })
+
+                    dialog.close();
+                }
+            }]
+        });
+    }
+</script>
+
+
+
+
+</body>
+
+</html>

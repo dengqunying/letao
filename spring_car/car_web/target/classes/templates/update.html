@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form id="id_update">
+<input type="hidden" name="id" th:value="${users.id}">
+    名称:<input name="name" th:value="${users.name}"><br>
+    游戏名称:<input name="address" th:value="${users.address}"><br>
+    年龄:<input name="age" th:value="${users.age}"><br>
+</form>
+</body>
+</html>
